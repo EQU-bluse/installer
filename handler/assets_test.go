@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -124,7 +125,7 @@ func TestGenericAssetSelection(t *testing.T) {
 					json.NewEncoder(w).Encode(ghRelease{TagName: "v1", Assets: assets})
 				}))
 				h := &Handler{Client: srv.Client(), GHAPI: srv.URL}
-				tag, selected, err := h.getAssetsNoCache(Query{User: "acme", Program: "tool", Release: "v1", Select: tc.Select})
+				tag, selected, err := h.getAssetsNoCache(context.Background(), Query{User: "acme", Program: "tool", Release: "v1", Select: tc.Select})
 				srv.Close()
 				if err != nil {
 					t.Fatal(err)

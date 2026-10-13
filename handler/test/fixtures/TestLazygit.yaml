@@ -72,3 +72,26 @@ interactions:
     status: 200 OK
     code: 200
     duration: 4.348758158s
+- id: 1
+  request:
+    proto: HTTP/1.1
+    proto_major: 1
+    proto_minor: 1
+    content_length: 0
+    host: github.com
+    headers: {}
+    url: https://github.com/jesseduffield/lazygit/releases/download/v0.55.0/checksums.txt
+    method: GET
+  response:
+    proto: HTTP/1.1
+    proto_major: 1
+    proto_minor: 1
+    content_length: -1
+    uncompressed: false
+    body: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  lazygit_0.55.0_darwin_x86_64.tar.gz\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  lazygit_0.55.0_darwin_arm64.tar.gz\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  lazygit_0.55.0_freebsd_32-bit.tar.gz\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  lazygit_0.55.0_freebsd_x86_64.tar.gz\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  lazygit_0.55.0_freebsd_armv6.tar.gz\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  lazygit_0.55.0_freebsd_arm64.tar.gz\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  lazygit_0.55.0_linux_32-bit.tar.gz\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  lazygit_0.55.0_linux_x86_64.tar.gz\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  lazygit_0.55.0_linux_armv6.tar.gz\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  lazygit_0.55.0_linux_arm64.tar.gz\n"
+    headers:
+      Content-Type:
+      - text/plain; charset=utf-8
+    status: 200 OK
+    code: 200
+    duration: 0s

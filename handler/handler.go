@@ -2,8 +2,7 @@ package handler
 
 import (
 	"bytes"
-	"crypto/sha256"
-	"encoding/base64"
+	"context"
 	"encoding/json"
 	"errors"
 	"flag"
@@ -48,22 +47,13 @@ type QueryResult struct {
 	M1Asset         bool
 }
 
-func (q Query) cacheKey() string {
-	hw := sha256.New()
-	jw := json.NewEncoder(hw)
-	if err := jw.Encode(q); err != nil {
-		panic(err)
-	}
-	return base64.StdEncoding.EncodeToString(hw.Sum(nil))
-}
-
 // Handler serves install scripts using Github releases
 type Handler struct {
 	Config
-	Client   *http.Client
-	GHAPI    string
-	cacheMut sync.Mutex
-	cache    map[string]QueryResult
+	Client  *http.Client
+	GHAPI   string
+	resOnce sync.Once
+	res     *resolver
 }
 
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -172,7 +162,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// fetch assets
-	result, err := h.execute(q)
+	result, err := h.execute(r.Context(), q)
 	if err != nil {
 		showError(err.Error(), http.StatusBadGateway)
 		return
@@ -245,8 +235,8 @@ func (as Assets) HasM1() bool {
 	return false
 }
 
-func (h *Handler) get(url string, v any) error {
-	req, _ := http.NewRequest("GET", url, nil)
+func (h *Handler) get(ctx context.Context, url string, v any) error {
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 	if h.Config.Token != "" {
 		req.Header.Set("Authorization", "token "+h.Config.Token)

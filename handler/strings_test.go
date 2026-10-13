@@ -183,28 +183,49 @@ func TestBunChecksumFiles(t *testing.T) {
 	}
 }
 
-func TestQueryCacheKey(t *testing.T) {
+func TestResolveKey(t *testing.T) {
 	q := Query{
-		User:    "testuser",
-		Program: "testrepo",
-		Release: "v1.0.0",
-		OS:      "linux",
-		Arch:    "amd64",
+		User:       "testuser",
+		Program:    "testrepo",
+		Release:    "v1.0.0",
+		Select:     "linux",
+		OS:         "linux",
+		Arch:       "amd64",
+		AsProgram:  "myprog",
+		MoveToPath: true,
+		Insecure:   true,
 	}
-
-	key1 := q.cacheKey()
-	key2 := q.cacheKey()
-
-	if key1 != key2 {
-		t.Errorf("cacheKey should be deterministic, got %s and %s", key1, key2)
+	if got, want := keyFor(q), keyFor(q); got != want {
+		t.Fatalf("keyFor should be deterministic, got %s and %s", got, want)
 	}
-
-	// Different query should produce different key
-	q2 := q
-	q2.Arch = "arm64"
-	key3 := q2.cacheKey()
-	if key1 == key3 {
-		t.Error("different queries should produce different cache keys")
+	for _, mut := range []func(Query) Query{
+		func(q Query) Query { q.OS = "darwin"; return q },
+		func(q Query) Query { q.Arch = "arm64"; return q },
+		func(q Query) Query { q.AsProgram = "other"; return q },
+		func(q Query) Query { q.MoveToPath = false; return q },
+		func(q Query) Query { q.Insecure = false; return q },
+	} {
+		if keyFor(mut(q)) != keyFor(q) {
+			t.Fatal("render-only options must share the canonical key")
+		}
+	}
+	for _, mut := range []func(Query) Query{
+		func(q Query) Query { q.User = "other"; return q },
+		func(q Query) Query { q.Program = "other"; return q },
+		func(q Query) Query { q.Release = "v2.0.0"; return q },
+		func(q Query) Query { q.Select = "darwin"; return q },
+		func(q Query) Query { q.Search = true; return q },
+	} {
+		if keyFor(mut(q)) == keyFor(q) {
+			t.Fatal("resolution inputs must produce distinct keys")
+		}
+	}
+	latest := q
+	latest.Release = ""
+	explicitLatest := q
+	explicitLatest.Release = "latest"
+	if keyFor(latest) != keyFor(explicitLatest) {
+		t.Fatal(`"" and "latest" selectors must share the canonical key`)
 	}
 }
 

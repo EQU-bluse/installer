@@ -72,3 +72,26 @@ interactions:
     status: 200 OK
     code: 200
     duration: 3.093946319s
+- id: 1
+  request:
+    proto: HTTP/1.1
+    proto_major: 1
+    proto_minor: 1
+    content_length: 0
+    host: github.com
+    headers: {}
+    url: https://github.com/simeji/jid/releases/download/v0.7.6/checksums.txt
+    method: GET
+  response:
+    proto: HTTP/1.1
+    proto_major: 1
+    proto_minor: 1
+    content_length: -1
+    uncompressed: false
+    body: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_darwin_386.zip\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_darwin_amd64.zip\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_freebsd_386.zip\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_freebsd_amd64.zip\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_linux_386.zip\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_linux_amd64.zip\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_linux_arm64.zip\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_netbsd_386.zip\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_netbsd_amd64.zip\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_openbsd_386.zip\ne3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  jid_openbsd_amd64.zip\n"
+    headers:
+      Content-Type:
+      - text/plain; charset=utf-8
+    status: 200 OK
+    code: 200
+    duration: 0s

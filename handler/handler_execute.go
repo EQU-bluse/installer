@@ -2,74 +2,16 @@ package handler
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"sort"
 	"strings"
-	"time"
 )
 
-func (h *Handler) execute(q Query) (QueryResult, error) {
-	// load from cache
-	key := q.cacheKey()
-	h.cacheMut.Lock()
-	if h.cache == nil {
-		h.cache = map[string]QueryResult{}
-	}
-	cached, ok := h.cache[key]
-	h.cacheMut.Unlock()
-	// cache hit
-	if ok && time.Since(cached.Timestamp) < cacheTTL {
-		return cached, nil
-	}
-	// do real operation
-	ts := time.Now()
-	release, assets, err := h.getAssetsNoCache(q)
-	if err == nil {
-		// didn't need search
-		q.Search = false
-	} else if errors.Is(err, errNotFound) && q.Search {
-		// use ddg/google to auto-detect user...
-		user, program, gerr := imFeelingLuck(q.Program)
-		if gerr != nil {
-			log.Printf("web search failed: %s", gerr)
-		} else {
-			log.Printf("web search found: %s/%s", user, program)
-			if program != q.Program {
-				log.Printf("program mismatch: got %s: expected %s", q.Program, program)
-			}
-			q.Program = program
-			q.User = user
-			// retry assets...
-			release, assets, err = h.getAssetsNoCache(q)
-		}
-	}
-	// asset fetch failed, dont cache
-	if err != nil {
-		return QueryResult{}, err
-	}
-	// success
-	if q.Release == "" && release != "" {
-		log.Printf("detected release: %s", release)
-		q.Release = release
-	}
-	result := QueryResult{
-		Timestamp:       ts,
-		Query:           q,
-		ResolvedRelease: release,
-		Assets:          assets,
-		M1Asset:         assets.HasM1(),
-	}
-	// success store results
-	h.cacheMut.Lock()
-	h.cache[key] = result
-	h.cacheMut.Unlock()
-	return result, nil
-}
-
-func (h *Handler) getAssetsNoCache(q Query) (string, Assets, error) {
+func (h *Handler) getAssetsNoCache(ctx context.Context, q Query) (string, Assets, error) {
 	user := q.User
 	repo := q.Program
 	release := q.Release
@@ -86,7 +28,7 @@ func (h *Handler) getAssetsNoCache(q Query) (string, Assets, error) {
 		url += "/tags/" + release
 	}
 	ghr := ghRelease{}
-	if err := h.get(url, &ghr); err != nil {
+	if err := h.get(ctx, url, &ghr); err != nil {
 		if errors.Is(err, errNotFound) && release != "" && release != "latest" {
 			return release, nil, fmt.Errorf("%w: release tag '%s'", errNotFound, release)
 		}
@@ -97,7 +39,10 @@ func (h *Handler) getAssetsNoCache(q Query) (string, Assets, error) {
 	if len(ghas) == 0 {
 		return release, nil, errors.New("no assets found")
 	}
-	sumIndex, _ := ghas.getSumIndex(h.Client)
+	sumIndex, err := ghas.getSumIndex(ctx, h.Client)
+	if err != nil {
+		return release, nil, fmt.Errorf("fetch checksums: %w", err)
+	}
 	if l := len(sumIndex); l > 0 {
 		log.Printf("fetched %d asset shasums", l)
 	}
@@ -227,7 +172,7 @@ func (h *Handler) getAssetsNoCache(q Query) (string, Assets, error) {
 
 type ghAssets []ghAsset
 
-func (as ghAssets) getSumIndex(client *http.Client) (map[string]string, error) {
+func (as ghAssets) getSumIndex(ctx context.Context, client *http.Client) (map[string]string, error) {
 	url := ""
 	for _, ga := range as {
 		// is checksum file?
@@ -237,12 +182,16 @@ func (as ghAssets) getSumIndex(client *http.Client) (map[string]string, error) {
 		}
 	}
 	if url == "" {
-		return nil, errors.New("no sum file found")
+		return nil, nil
 	}
 	if client == nil {
 		client = http.DefaultClient
 	}
-	resp, err := client.Get(url)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, err
 	}

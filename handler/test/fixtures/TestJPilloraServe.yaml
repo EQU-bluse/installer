@@ -72,3 +72,26 @@ interactions:
     status: 200 OK
     code: 200
     duration: 350.000792ms
+- id: 1
+  request:
+    proto: HTTP/1.1
+    proto_major: 1
+    proto_minor: 1
+    content_length: 0
+    host: github.com
+    headers: {}
+    url: https://github.com/jpillora/serve/releases/download/v1.9.8/serve_1.9.8_checksums.txt
+    method: GET
+  response:
+    proto: HTTP/1.1
+    proto_major: 1
+    proto_minor: 1
+    content_length: -1
+    uncompressed: false
+    body: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855  serve_1.9.8_linux_amd64.gz\n"
+    headers:
+      Content-Type:
+      - text/plain; charset=utf-8
+    status: 200 OK
+    code: 200
+    duration: 0s

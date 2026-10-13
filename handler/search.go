@@ -1,25 +1,26 @@
 package handler
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 )
 
-func imFeelingLuck(phrase string) (user, project string, err error) {
+func imFeelingLuck(ctx context.Context, phrase string) (user, project string, err error) {
 	phrase += " site:github.com"
 	// try dgg
 	v := url.Values{}
 	v.Set("q", "! " /*I'm feeling lucky*/ +phrase)
-	if user, project, err := captureRepoLocation(("https://html.duckduckgo.com/html?" + v.Encode())); err == nil {
+	if user, project, err := captureRepoLocation(ctx, ("https://html.duckduckgo.com/html?" + v.Encode())); err == nil {
 		return user, project, nil
 	}
 	// try google
 	v = url.Values{}
 	v.Set("btnI", "") // I'm feeling lucky
 	v.Set("q", phrase)
-	if user, project, err := captureRepoLocation(("https://www.google.com/search?" + v.Encode())); err == nil {
+	if user, project, err := captureRepoLocation(ctx, ("https://www.google.com/search?" + v.Encode())); err == nil {
 		return user, project, nil
 	}
 	return "", "", errors.New("not found")
@@ -27,8 +28,8 @@ func imFeelingLuck(phrase string) (user, project string, err error) {
 
 // uses im feeling lucky and grabs the "Location"
 // header from the 302, which contains the github repo
-func captureRepoLocation(url string) (user, project string, err error) {
-	req, err := http.NewRequest("GET", url, nil)
+func captureRepoLocation(ctx context.Context, url string) (user, project string, err error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		panic(err)
 	}
